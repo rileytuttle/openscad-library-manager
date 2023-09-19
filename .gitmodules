@@ -1,0 +1,6 @@
+[submodule "threads-scad"]
+	path = threads-scad
+	url = https://github.com/rcolyer/threads-scad.git
+[submodule "BOSL2"]
+	path = BOSL2
+	url = https://github.com/BelfrySCAD/BOSL2.git
