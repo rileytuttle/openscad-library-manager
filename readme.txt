@@ -16,7 +16,7 @@ will be something like /home/username/.local/share/OpenSCAD/libraries
 that directory hopefully wont exist yet (haven't figured out how to handle if that exists and has something in it)
 create symbolic link to that path
 
->> mkdir -p <USER_LIBRARY_PATH>
+>> mkdir -p <USER_LIBRARY_PATH>/..
 >> ln -s <OPENSCAD_LIBRARY_MANAGER_PATH> <USER_LIBRARY_PATH>
 
 periodically we should pull the latest commits in the repos
