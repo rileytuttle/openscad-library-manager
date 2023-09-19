@@ -18,3 +18,8 @@ create symbolic link to that path
 
 >> mkdir -p <USER_LIBRARY_PATH>
 >> ln -s <OPENSCAD_LIBRARY_MANAGER_PATH> <USER_LIBRARY_PATH>
+
+periodically we should pull the latest commits in the repos
+>> git submodule foreach git pull origin master
+or something to that effect
+then check in if it works well 
