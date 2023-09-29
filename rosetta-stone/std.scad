@@ -148,7 +148,9 @@ module hinge_profile(
     // echo("height of material cut", height_of_material_cut);
     // echo("top length of fin", top_length_of_fin);
 
-    attachable(spin=spin, anchor=anchor, orient=orient, size=[span_of_hinge,height_of_material_cut, cut_depth]) {
+    attachable(spin=spin, anchor=anchor, orient=orient, size=[span_of_hinge,cut_depth, height_of_material_cut]) {
+        rotate([90, 0, 0])
+        translate([0, height_of_material_cut/2, -cut_depth/2])
         for (i=[0 : number_of_fins-1]) {
             translate([i*period - (span_of_hinge/2), 0, 0])
                 linear_extrude(cut_depth)
