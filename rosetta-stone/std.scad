@@ -1,9 +1,14 @@
 include <BOSL2/std.scad>
 include <BOSL2/rounding.scad>
 
-module simulated_4_hole_board(size, mount_hole_h_spacing, mount_hole_v_spacing, mount_hole_diam, mount_hole_h_offset=0, mount_hole_v_offset=0, anchor=CENTER, spin=0, orient=UP) {
+// hole mask masks out holes
+// hole_mask[0] top left
+// hole_mask[1] bottom left
+// hole_mask[2] bottom right
+// hole_mask[3] top right
+module simulated_4_hole_board(size, mount_hole_spacing=[0,0], mount_hole_diam, mount_hole_offset=[0,0], anchor=CENTER, spin=0, orient=UP, hole_mask = [1, 1, 1, 1]) {
     mount_hole_locs = [
-        for (i=[-mount_hole_h_spacing/2,mount_hole_h_spacing/2], j=[-mount_hole_v_spacing/2, mount_hole_v_spacing/2]) [i+mount_hole_h_offset, j+mount_hole_v_offset, 0]
+        for (i=[-mount_hole_spacing[0]/2,mount_hole_spacing[0]/2], j=[-mount_hole_spacing[1]/2, mount_hole_spacing[1]/2]) [i+mount_hole_offset[0], j+mount_hole_offset[1], 0]
     ];
     mount_hole_names = [
         "mount_hole1",
@@ -12,28 +17,28 @@ module simulated_4_hole_board(size, mount_hole_h_spacing, mount_hole_v_spacing, 
         "mount_hole4",
     ];
     anchor_list = [
-        for (i=[0:4-1]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
+        for (i=[0:4-1]) if(hole_mask[i]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
     ];
-    for (my_anchor=anchor_list) {
-        echo(my_anchor);
-    }
     attachable(anchor=anchor, spin=spin, orient=orient, size=size, anchors=anchor_list) {
         diff("mount-holes"){
         cube(size=size, anchor=CENTER) {
             tag("mount-holes") {
-            for (loc=mount_hole_locs) {
-                position(CENTER)
-                translate(loc)
-                cyl(d=mount_hole_diam, l=size[2]+1, anchor=CENTER);
+            for (i=[0:4-1]) {
+                if (hole_mask[i]) {
+                    loc=mount_hole_locs[i];
+                    position(CENTER)
+                    translate(loc)
+                    cyl(d=mount_hole_diam, l=size[2]+1, anchor=CENTER);
+                }
             }}
         }}
         children();
     }
 }
 
-module standoffs4(width, height, l, d, anchor=CENTER, spin=0, orient=UP, rounding=0) {
+module standoffs4(size2d, l, d, anchor=CENTER, spin=0, orient=UP, rounding=0, standoff_mask=[1,1,1,1]) {
     standoff_locs = [
-        for (i=[-width/2,width/2], j=[-height/2, height/2]) [i, j, 0]
+        for (i=[-size2d[0]/2,size2d[0]/2], j=[-size2d[1]/2, size2d[1]/2]) [i, j, 0]
     ];
     standoff_names = [
         "standoff1",
@@ -42,20 +47,23 @@ module standoffs4(width, height, l, d, anchor=CENTER, spin=0, orient=UP, roundin
         "standoff4",
     ];
     anchor_list = [
-        for (i=[0:4-1]) named_anchor(standoff_names[i], standoff_locs[i])
+        for (i=[0:4-1]) if(standoff_mask[i]) named_anchor(standoff_names[i], standoff_locs[i])
     ];
-    attachable(anchor=anchor, spin=spin, orient=orient, size=[width+d, height+d, l], anchors=anchor_list) {
-        for (loc=standoff_locs) {
-            translate(loc)
-            cyl(d=d, l=l, anchor=CENTER, rounding1=rounding);
+    attachable(anchor=anchor, spin=spin, orient=orient, size=[size2d[0]+d, size2d[1]+d, l], anchors=anchor_list) {
+        for (i=[0:4-1]) {
+            if (standoff_mask[i]) {
+                loc=standoff_locs[i];
+                translate(loc)
+                cyl(d=d, l=l, anchor=CENTER, rounding1=rounding);
+            }
         }
         children();
     }
 }
 
-module mount_holes4(width, height, l, d, anchor=CENTER, spin=0, orient=UP) {
+module mount_holes4(size2d, l, d, anchor=CENTER, spin=0, orient=UP, mount_hole_mask=[1,1,1,1]) {
     mount_hole_locs = [
-        for (i=[-width/2,width/2], j=[-height/2, height/2]) [i, j, 0]
+        for (i=[-size[0]/2,size[0]/2], j=[-size2d[1]/2, size2d[1]/2]) [i, j, 0]
     ];
     mount_hole_names = [
         "mount_hole1",
@@ -64,12 +72,41 @@ module mount_holes4(width, height, l, d, anchor=CENTER, spin=0, orient=UP) {
         "mount_hole4",
     ];
     anchor_list = [
-        for (i=[0:4-1]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
+        for (i=[0:4-1]) if(mount_hole_mask[i]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
     ];
-    attachable(anchor=anchor, spin=spin, orient=orient, size=[width+d, height+d, l], anchors=anchor_list) {
-        for (loc=mount_hole_locs) {
-            translate(loc)
-            cyl(d=d, l=l, anchor=CENTER);
+    attachable(anchor=anchor, spin=spin, orient=orient, size=[size[0]+d, size2d[1]+d, l], anchors=anchor_list) {
+        for (i=[0:4-1]) {
+            if (mount_hole_mask[i]) {
+                loc=mount_hole_locs[i];
+                translate(loc)
+                cyl(d=d, l=l, anchor=CENTER);
+            }
+        }
+        children();
+    }
+}
+module mount_threads4(spec, size2d, anchor=CENTER, spin=0, orient=UP, mount_hole_mask=[1,1,1,1]) {
+    d=struct_val(spec, "diameter");
+    l=struct_val(spec, "length");
+    mount_hole_locs = [
+        for (i=[-size2d[0]/2,size2d[0]/2], j=[-size2d[1]/2, size2d[1]/2]) [i, j, 0]
+    ];
+    mount_hole_names = [
+        "mount_hole1",
+        "mount_hole2",
+        "mount_hole3",
+        "mount_hole4",
+    ];
+    anchor_list = [
+        for (i=[0:4-1]) if(mount_hole_mask[i]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
+    ];
+    attachable(anchor=anchor, spin=spin, orient=orient, size=[size2d[0]+d, size2d[1]+d, l], anchors=anchor_list) {
+        for (i=[0:4-1]) {
+            if (mount_hole_mask[i]) {
+                loc=mount_hole_locs[i];
+                translate(loc)
+                screw_hole(spec=spec, thread=true, bevel2=true, anchor=CENTER);
+            }
         }
         children();
     }
@@ -85,7 +122,21 @@ module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=
     }
 }
 
-module hinge_profile(inner_radius, bend_range, span_of_hinge, height_of_material_cut, cut_depth, number_of_fins, layer_height=0.2, layers_to_bend=2, minimum_gap=0.5, minimum_straight=0.5, fudge_factor=0.001) {
+module hinge_profile(
+    inner_radius,
+    bend_range,
+    span_of_hinge,
+    height_of_material_cut, // height of the material being cut
+    cut_depth,
+    number_of_fins,
+    layer_height=0.2,
+    layers_to_bend=2,
+    minimum_gap=0.5,
+    minimum_straight=0.5,
+    fudge_factor=0.001,
+    spin=0,
+    anchor=CENTER,
+    orient=UP) {
     angle_per_fin = bend_range / number_of_fins;
     material_left = layers_to_bend*layer_height;
     height_of_cut = height_of_material_cut - material_left;
@@ -97,12 +148,15 @@ module hinge_profile(inner_radius, bend_range, span_of_hinge, height_of_material
     // echo("height of material cut", height_of_material_cut);
     // echo("top length of fin", top_length_of_fin);
 
-    for (i=[0 : number_of_fins-1]) {
-        translate([i*period - (span_of_hinge/2), 0, 0])
-            linear_extrude(cut_depth)
-                translate([0,fudge_factor,0])
-                trapezoid(h=height_of_cut+fudge_factor, w1=0, w2 = top_length_of_fin, anchor=BACK+LEFT)
-                    position(BACK)
-                        square([minimum_gap, height_of_cut], anchor=BACK);
+    attachable(spin=spin, anchor=anchor, orient=orient, size=[span_of_hinge,height_of_material_cut, cut_depth]) {
+        for (i=[0 : number_of_fins-1]) {
+            translate([i*period - (span_of_hinge/2), 0, 0])
+                linear_extrude(cut_depth)
+                    translate([0,fudge_factor,0])
+                    trapezoid(h=height_of_cut+fudge_factor, w1=0, w2 = top_length_of_fin, anchor=BACK+LEFT)
+                        position(BACK)
+                            square([minimum_gap, height_of_cut], anchor=BACK);
+        }
+        children();
     }
 }
