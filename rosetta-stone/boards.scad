@@ -73,7 +73,7 @@ module mount_holes4(size2d, l, d, anchor=CENTER, spin=0, orient=UP, mount_hole_m
     anchor_list = [
         for (i=[0:4-1]) if(mount_hole_mask[i]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
     ];
-    attachable(anchor=anchor, spin=spin, orient=orient, size=[size[0]+d, size2d[1]+d, l], anchors=anchor_list) {
+    attachable(anchor=anchor, spin=spin, orient=orient, size=[size2d[0]+d, size2d[1]+d, l], anchors=anchor_list) {
         for (i=[0:4-1]) {
             if (mount_hole_mask[i]) {
                 loc=mount_hole_locs[i];
@@ -84,10 +84,9 @@ module mount_holes4(size2d, l, d, anchor=CENTER, spin=0, orient=UP, mount_hole_m
         children();
     }
 }
-module mount_threads4(spec, size2d, anchor=CENTER, threaded=true, spin=0, orient=UP, mount_hole_mask=[1,1,1,1]) {
+module mount_threads4(spec, size, anchor=CENTER, threaded=true, spin=0, orient=UP, mount_hole_mask=[1,1,1,1]) {
     d=struct_val(spec, "diameter");
-    l=struct_val(spec, "length");
-    mount_hole_locs = get_mount_hole_locs(size2d);
+    mount_hole_locs = get_mount_hole_locs([size[0], size[1]]);
     mount_hole_names = [
         "mount_hole1",
         "mount_hole2",
@@ -97,12 +96,12 @@ module mount_threads4(spec, size2d, anchor=CENTER, threaded=true, spin=0, orient
     anchor_list = [
         for (i=[0:4-1]) if(mount_hole_mask[i]) named_anchor(mount_hole_names[i], mount_hole_locs[i])
     ];
-    attachable(anchor=anchor, spin=spin, orient=orient, size=[size2d[0]+d, size2d[1]+d, l], anchors=anchor_list) {
+    attachable(anchor=anchor, spin=spin, orient=orient, size=[size[0]+d, size[1]+d, size[2]], anchors=anchor_list) {
         for (i=[0:4-1]) {
             if (mount_hole_mask[i]) {
                 loc=mount_hole_locs[i];
                 translate(loc)
-                screw_hole(spec=spec, thread=threaded, bevel2=true, anchor=CENTER);
+                screw_hole(spec=spec, thread=threaded, bevel2=true, anchor=CENTER, length=size[2]);
             }
         }
         children();
