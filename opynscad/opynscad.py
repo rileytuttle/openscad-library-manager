@@ -1,17 +1,36 @@
-class Geometry:
-    def __init__(self, includes=[],uses=[]):
-        self.unions = []
-        self.differences = []
-        self.intersections = []
+class ScadObj:
+    def __init__(self, includes=[], uses=[]):
         self.includes = includes
         self.uses = uses
-        self.translation = []
-        self.rotation = []
+        self.translation = [0, 0, 0]
+        self.rotation = [0, 0, 0]
     def translate(self, translation):
-        # self.translation += translation
-        self.descriptor = f'translate({translation}) ' + self.descriptor
+        for axis, val in enumerate(translation):
+            self.translation[axis] += val
+        self.process()
     def rotate(self, rotation):
-        self.descriptor = f'rotate({rotation}) ' + self.descriptor
+        for axis, val in enumerate(rotation):
+            self.rotation[axis] += val
+        self.process()
+    def get_includes(self):
+        return self.includes
+    def get_uses(self):
+        return self.uses
+    def get_descriptor(self):
+        descriptor = f'translate({self.translation}) rotate({self.rotation}) ' + self.base_descriptor
+        return descriptor
+    def process(self):
+        pass
+
+class CombGeometry(ScadObj):
+    def __init__(self, geoms=[]):
+        self.translation = [0, 0, 0]
+        self.rotation = [0, 0, 0]
+        self.geoms = geoms
+        self.includes = []
+        self.uses = []
+        self.collect_incs(geoms)
+        self.collect_uses(geoms)
     def collect_incs(self, geoms):
         if type(geoms) is not list and type(geoms) is not None:
             for inc in geoms.includes:
@@ -30,32 +49,26 @@ class Geometry:
                 self.collect_uses(geom)
     def raw_scad(self, raw_scad):
         self.descriptor = raw_scad
-    def write(self):
-        return self.descriptor
 
-class UnionObj(Geometry):
-    def __init__(self, objlist):
-        super().__init__()
-        self.collect_incs(objlist)
-        self.collect_uses(objlist)
-        self.descriptor = self.union(objlist)
-    def union(self, objlist):
+class Union(CombGeometry):
+    def __init__(self, geoms):
+        self.base_descriptor = self.union(geoms)
+        super().__init__(geoms)
+    def union(self, geoms):
         command = "union() {\n\n"
-        for obj in objlist:
-            command += f'{obj.write()};\n\n'
+        for geom in geoms:
+            command += f'{geom.get_descriptor()};\n\n'
         command += "}" 
         return command
 
-class DiffObj(Geometry):
-    def __init__(self, objlist):
-        super().__init__()
-        self.collect_incs(objlist)
-        self.collect_uses(objlist)
-        self.descriptor = self.diff(objlist)
-    def diff(self, objlist):
+class Difference(CombGeometry):
+    def __init__(self, geoms):
+        self.base_descriptor = self.difference(geoms)
+        super().__init__(geoms)
+    def difference(self, geoms):
         command = "difference() {\n\n"
-        for obj in objlist:
-            command += f'{obj.write()};\n\n'
+        for geom in geoms:
+            command += f'{geom.get_descriptor()};\n\n'
         command += "}" 
         return command
 
@@ -71,32 +84,7 @@ class OpynScadWriter:
             filehandle.write('\n')
             filehandle.write(geom.get_descriptor())
 
-class ScadObj:
-    def __init__(self, includes=[], uses=[]):
-        self.includes = includes
-        self.uses = uses
-        self.translation = [0, 0, 0]
-        self.rotation = [0, 0, 0]
-    def translate(self, translation):
-        self.translation += translation
-        self.process()
-    def rotate(self, uses):
-        self.uses += uses
-        self.process()
-    def get_includes(self):
-        return self.includes
-    def get_uses(self):
-        return self.uses
-    def get_descriptor(self):
-        descriptor = f'translate({self.translation}) rotate({self.rotation}) ' + self.base_descriptor
-        return descriptor
-    def process(self):
-        pass
-
-class OpynScadObj(ScadObj):
-    def __init__(self):
-        pass
-
+# a simple wrapper around an already written openscad module
 class WrappedObj(ScadObj):
     def __init__(self, module_name, includes=[], uses=[]):
         self.module_name=module_name
@@ -112,11 +100,3 @@ class WrappedObj(ScadObj):
             command = command[:-1]
         command += ")"
         return command
-    def translate(self, translation):
-        self.descriptor = f'translate({translation}) ' + self.descriptor
-        self.translation += translation
-        self.process()
-    def rotate(self, rotation):
-        self.descriptor = f'rotate({rotation}) ' + self.descriptor
-        self.rotation += rotation
-        self.process()

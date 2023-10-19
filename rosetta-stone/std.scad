@@ -6,6 +6,9 @@ INCH = 25.4;
 function mm_to_in(mm) = mm * 0.0393701;
 function in_to_mm(in) = in * 25.4;
 
+function polar_to_cart(r, theta) = [r*cos(theta), r*sin(theta)];
+function cart_to_polar(x, y) = [sqrt(x^2+y^2), atan(y/x)];
+
 function get_sequential_anchor_names(prefix, number_of_anchors=4) = [
         for (i=[0:number_of_anchors-1]) str(prefix,i)
     ];
