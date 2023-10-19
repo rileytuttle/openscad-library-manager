@@ -1,0 +1,9 @@
+CENTER=[0, 0, 0]
+UP=[0, 0, 1]
+TOP=UP
+DOWN=[0, 0, -1]
+BOTTOM=DOWN
+LEFT=[-1, 0, 0]
+RIGHT=[1, 0, 0]
+FRONT=[0, -1, 0]
+BACK=[0, 1, 0]
