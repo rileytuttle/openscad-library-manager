@@ -22,6 +22,11 @@ class ScadObj:
     def process(self):
         pass
 
+class RawScadObj(ScadObj):
+    def __init__(self, rawscad, includes=[], uses=[]):
+        self.base_descriptor = rawscad
+        super().__init__(includes, uses)
+
 class CombGeometry(ScadObj):
     def __init__(self, geoms=[]):
         self.translation = [0, 0, 0]
@@ -95,6 +100,8 @@ class WrappedObj(ScadObj):
     def get_base_description(self):
         command = f'{self.module_name}('
         for key, value in self.config.items():
+            if type(value) is bool:
+                value = "true" if value else "false"
             command += f'\n{key}={value},'
         if command[-1] == ",":
             command = command[:-1]

@@ -1,7 +1,7 @@
 # import pdb
 # pdb.set_trace()
-from .opynscad import OpynScadWriter, WrappedObj
-from .dirs import *
+from opynscad import OpynScadWriter, WrappedObj
+from dirs import *
 
 class HingeFin(WrappedObj):
     def __init__(
