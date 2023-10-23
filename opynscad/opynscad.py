@@ -29,11 +29,8 @@ class RawScadObj(ScadObj):
 
 class CombGeometry(ScadObj):
     def __init__(self, geoms=[]):
-        self.translation = [0, 0, 0]
-        self.rotation = [0, 0, 0]
         self.geoms = geoms
-        self.includes = []
-        self.uses = []
+        super().__init__()
         self.collect_incs(geoms)
         self.collect_uses(geoms)
     def collect_incs(self, geoms):
@@ -52,8 +49,32 @@ class CombGeometry(ScadObj):
         else:
             for geom in geoms:
                 self.collect_uses(geom)
-    def raw_scad(self, raw_scad):
-        self.descriptor = raw_scad
+
+class AttachableGeom(CombGeometry):
+    def __init__(self, base_geom):
+        self.base_geom = base_geom
+        self.positions = []
+        self.base_descriptor = f'{base_geom.get_descriptor()};'
+        self.anchors = dict()
+        super().__init__(base_geom)
+    def get_anchors(self):
+        return self.anchors
+    def position(self, anchor, geom):
+        self.positions.append([anchor, geom])
+        self.get_base_descriptor()
+        self.collect_incs(geom)
+        self.collect_uses(geom)
+
+class AttachableUnion(AttachableGeom):
+    def __init__(self, base_geom):
+        super().__init__(base_geom)
+    def get_base_descriptor(self):
+        descriptor = self.base_geom.get_descriptor()
+        descriptor += ' {\n' 
+        for position, geom in self.positions:
+            descriptor += f'position({position}) {geom.get_descriptor()};\n'
+        descriptor += "}\n"
+        self.base_descriptor = descriptor
 
 class Union(CombGeometry):
     def __init__(self, geoms):
@@ -80,12 +101,18 @@ class Difference(CombGeometry):
 class OpynScadWriter:
     def __init__(self, filepath):
         self.path = filepath
+        self.customizations = []
+    def set_customizations(self, customizations):
+        self.customizations=customizations
     def write(self, geom):
         with open(self.path, 'w+') as filehandle:
             for inc in geom.get_includes():
                 filehandle.write(f'include <{inc}>\n')
             for use in geom.get_uses():
                 filehandle.write(f'use <{use}>\n')
+            filehandle.write('\n')
+            for key, val in self.customizations:
+                filehandle.write(f'{key} = {val}\n')
             filehandle.write('\n')
             filehandle.write(geom.get_descriptor())
 
@@ -102,7 +129,11 @@ class WrappedObj(ScadObj):
         for key, value in self.config.items():
             if type(value) is bool:
                 value = "true" if value else "false"
-            command += f'\n{key}={value},'
+            elif type(value) is str:
+                value = f'"{value}"'
+            next_piece = f'\n{key}={value},'
+            # print(next_piece)
+            command += next_piece
         if command[-1] == ",":
             command = command[:-1]
         command += ")"
