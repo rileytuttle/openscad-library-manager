@@ -85,7 +85,9 @@ module mount_holes4(size2d, l, d, anchor=CENTER, spin=0, orient=UP, mount_hole_m
     }
 }
 module mount_threads4(spec, size, anchor=CENTER, threaded=true, spin=0, orient=UP, mount_hole_mask=[1,1,1,1]) {
-    d=struct_val(spec, "diameter");
+    d = struct_val(spec, "diameter") == undef ?
+        struct_val(screw_info(spec), "diameter") :
+        struct_val(spec, "diameter");
     mount_hole_locs = get_mount_hole_locs([size[0], size[1]]);
     mount_hole_names = [
         "mount_hole1",
