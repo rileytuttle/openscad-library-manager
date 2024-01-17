@@ -13,6 +13,14 @@ function get_sequential_anchor_names(prefix, number_of_anchors=4) = [
         for (i=[0:number_of_anchors-1]) str(prefix,i)
     ];
 
+function rotate_coords(coords, angle) = [
+    coords[0] * cos(angle) - coords[1] * sin(angle),
+    coords[0] * sin(angle) + coords[1] * cos(angle)
+];
+
+function dist_between_points2d(p1, p2) = sqrt((p1[0]-p2[0])^2 + (p1[1]-p2[1])^2);
+function angle_between_points2d(p1, p2) = atan2(p2[1]-p1[1],p2[0]-p1[0]);
+
 module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=UP) {   
     slot_path = glued_circles(r=d/2, spread=spread, tangent=0);
     attachable(anchor=anchor, spin=spin, orient=orient, size=[spread+d, d, h]) {
@@ -31,9 +39,33 @@ module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=
 //     }
 // }
 
-module trapezoid3d(bottomwidth, topwidth, height, anchor=CENTER, spin=0, orient=UP) {
+module trapezoid3d(bottomwidth, topwidth, height, length, anchor=CENTER, spin=0, orient=UP) {
     attachable(anchor=anchor, spin=spin, orient=orient) {
-        prismoid(size1=[bottomwidth, height], size2=[topwidth, height]);
+        prismoid(size1=[bottomwidth, height], size2=[topwidth, height], height=length);
         children();
     }
+}
+
+module regular_polygon_3d(sides, r, height, spin=0, orient=UP, anchor=CENTER)
+{
+    attachable(spin=spin, orient=orient, anchor=anchor, size=[2*r, 2*r, height]) {
+        down(height/2)
+        linear_extrude(height) {
+            circle(r=r, $fn=sides);
+        }
+        children();
+    }
+}
+
+module hexagon3d(r,minor_width,height,spin=0, orient=UP, anchor=CENTER)
+{
+    assert(!(r == undef && minor_width == undef));
+    rad = r==undef ?
+        minor_width / (2 * sin(60)) :
+        r;
+    attachable(spin=spin, orient=orient, anchor=anchor, size=[2*rad, 2*rad, height]) {
+        regular_polygon_3d(6, rad, height, spin=spin, orient=orient, anchor=anchor);
+        children();
+    }
+    
 }
