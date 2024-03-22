@@ -69,3 +69,32 @@ module hexagon3d(r,minor_width,height,spin=0, orient=UP, anchor=CENTER)
     }
     
 }
+
+module magnet_cutout_cyl(
+    mag_d, // magnet diam
+    mag_l, // magnet height
+    l, // overall length that we want to cut, used for viewing window
+    layerheight=0.2, // assumed printer layer height
+    n_layers_to_surface=2, // number of layers between the magnet and the surface
+    viewing_window=true, // should there be a viewing window to the magnet
+    viewing_gap=2, // how wide should the viewing window be
+    anchor=CENTER,
+    spin=0,
+    orient=UP) {
+    attachable(size=[mag_d, mag_d, l], spin=spin, anchor=anchor, orient=orient) {
+        intersect(intersect="mag-intersect", keep="mag-keep") {
+            cyl(d=mag_d, l=l, anchor=CENTER) {
+                tag("mag-intersect") cube([viewing_gap, mag_d, l], anchor=CENTER);
+                position(TOP)
+                down(layerheight*n_layers_to_surface)
+                tag("mag-keep") cyl(d=mag_d, l=mag_l, anchor=TOP);
+            }
+        }
+        children();
+    }
+}
+
+// cuboid where the bottom and top rounding can have mixed sign
+// for example cutting a pocket in something can could have a positive rounded edge at the bottom and negative at the top
+module mixed_rounding_cuboid() {
+}
