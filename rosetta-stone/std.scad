@@ -23,9 +23,10 @@ function angle_between_points2d(p1, p2) = atan2(p2[1]-p1[1],p2[0]-p1[0]);
 
 module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=UP) {   
     slot_path = glued_circles(r=d/2, spread=spread, tangent=0);
+    default_tag("remove")
     attachable(anchor=anchor, spin=spin, orient=orient, size=[spread+d, d, h]) {
         rotate([180,0,0])
-        translate([0,0,-h/2])
+        // translate([0,0,-h/2])
         offset_sweep(slot_path, height=h, bottom=os_teardrop(r=-round_radius), top=os_teardrop(r=-round_radius));
         children();
     }
@@ -97,4 +98,26 @@ module magnet_cutout_cyl(
 // cuboid where the bottom and top rounding can have mixed sign
 // for example cutting a pocket in something can could have a positive rounded edge at the bottom and negative at the top
 module mixed_rounding_cuboid() {
+}
+
+
+// note this will be 2 layers taller than l
+// l is the unchanged hole dim
+module floating_hole(d, l, channel_w, layer_height=0.2, anchor=CENTER, spin=0, orient=UP)
+{
+    channel_width = channel_w == undef ? d/3 : channel_w;
+    default_tag("remove")
+    attachable(anchor=anchor, orient=orient, spin=spin, size=[d, d, l]) {
+        union() {
+            cyl(d=d, l=l, anchor=CENTER);
+            up(l/2)
+            intersection() {
+                cyl(d=d, l=layer_height, anchor=BOTTOM);
+                cube([channel_width, d, layer_height], anchor=BOTTOM);
+            }
+            up(l/2 + layer_height)
+            cube([channel_width, channel_width, layer_height], anchor=BOTTOM);
+        }
+        children();
+    }
 }
