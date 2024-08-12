@@ -82,6 +82,7 @@ module magnet_cutout_cyl(
     anchor=CENTER,
     spin=0,
     orient=UP) {
+    // default_tag("remove")
     attachable(size=[mag_d, mag_d, l], spin=spin, anchor=anchor, orient=orient) {
         intersect(intersect="mag-intersect", keep="mag-keep") {
             cyl(d=mag_d, l=l, anchor=CENTER) {
