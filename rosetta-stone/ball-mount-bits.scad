@@ -23,23 +23,26 @@ module ball_with_circular_base(ball_d, platform_size, neck_size, flare_neck_bott
 
 // example
 // double_socket(25.5, 75, "1/4,20", nut_trap=false, offset_spring=true);
+// l should be the ball center to center length
 module double_socket(ball_d, l, screw_profile="1/4,20", nut_trap=true, offset_spring=false, spring_diam=6.75, anchor=CENTER, orient=UP, spin=0) {
     ball_increase_factor = 1.1;
-    size = [l, ball_d*0.9, ball_d * ball_increase_factor];
+    ball_to_edge_dist = 0;
+    size = [l + ball_d*0.9 + ball_to_edge_dist*2, ball_d*0.9, ball_d * ball_increase_factor];
     gap=3;
+    echo(str("overall length = ", size[0], "mm"));
     attachable(anchor=anchor, orient=orient, spin=spin, size=size) {
-        bottom_half()
+        bottom_half(size[0]+1)
         up(gap/2)
         diff() {
             cuboid(size, anchor=CENTER, rounding=3, teardrop=true) {
-                socket_offset = l-ball_d + 4;
+                socket_offset = l;
                 tag("remove")
                 zrot_copies(n=2, d=socket_offset) {
                     ball_decrease_factor = 0.7;
                     sphere(d=ball_d);
                     cyl(d=ball_d * ball_decrease_factor, l=50, orient=BACK)
                     position(RIGHT)
-                    cube([ball_d * ball_decrease_factor, ball_d * ball_decrease_factor, 50], anchor=CENTER);
+                    cube([ball_d * ball_decrease_factor, ball_d * ball_decrease_factor, ball_d*2], anchor=CENTER);
                 }
                 screw_hole(screw_profile, thread=false, l=35);
                 if(nut_trap) {
