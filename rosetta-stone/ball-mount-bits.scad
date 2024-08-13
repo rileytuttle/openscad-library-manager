@@ -110,15 +110,19 @@ module extension(
 }
 
 // example
-// wing_nut();
-module wing_nut(
+// wingnut();
+module wingnut(
     screw_profile="1/4,20",
+    size=[40, 15, 30], // [overall length, thickness must be wider than screw profile, overall height]
     orient=UP, anchor=CENTER, spin=0)
 {
-    width = 40;
-    thickness = 15;
-    height = 30;
-    size=[width, thickness, height];
+    width = size[0];
+    thickness = size[1];
+    height = size[2];
+    thread_spec = screw_info(screw_profile);
+    screw_hole_diam = struct_val(thread_spec, "diameter");
+    assert(width > 2 * thickness);
+    assert(thickness > screw_hole_diam + 2); // leaves at least 1 mm on each side
     attachable(size=size, anchor=anchor, orient=orient, spin=spin) {
         diff() {
             rounded_prism(rect([thickness, thickness], rounding=5), rect([width, thickness], rounding=5), l=height, joint_top=3, joint_bot=3) {
@@ -128,4 +132,3 @@ module wing_nut(
         children();
     }
 }
-
