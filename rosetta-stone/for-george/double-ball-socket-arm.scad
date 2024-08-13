@@ -1,5 +1,8 @@
 include <rosetta-stone/ball-mount-bits.scad>
 
+// the resolution of the model. use lower resolution for quick compile times while iterating. then increase before generating stl.
+$fn=50;
+
 // the diameter of the ball in mm. the module should already factor in a 10% increase in diam
 ball_diameter = 25.5;
 // the length of the arm from ball center to center. check terminal output for full tip to tip length.
