@@ -2,16 +2,52 @@ include <BOSL2/std.scad>
 include <BOSL2/screws.scad>
 include <BOSL2/rounding.scad>
 
+
+// probably should work on adding ribs to it
+module circular_base_with_post(post_d, ball_d, platform_size, neck_size, flare_neck_bottom=0, anchor=CENTER, orient=UP, spin=0) {
+    push_up_neck = 5;
+    size=[platform_size[0], platform_size[0], neck_size[1]+ball_d+platform_size[1] - push_up_neck];
+    ball_center_h = neck_size[1] - push_up_neck + platform_size[1] - size[2]/2 + ball_d/2;
+    anchor_list = [
+        // named_anchor("ball-center", [0, 0, platform_size[1]+neck_size[1]+push_up_neck]),
+        named_anchor("ball-center", [0, 0, ball_center_h]),
+    ];
+    attachable(orient=orient, anchor=anchor, spin=spin, size=size, anchors=anchor_list) {
+        // up(neck_size[1] - push_up_neck + platform_size[1])
+        // down(size[2]/2)
+        up(ball_center_h-ball_d/2)
+        intersect("onion", "else") {
+            cyl(d=neck_size[0], l=ball_d, anchor=TOP, orient=DOWN) {
+                tag("onion") onion(d=ball_d);
+                tag("else")
+                down(push_up_neck)
+                // neck
+                position(TOP) cyl(d=neck_size[0], l=neck_size[1], anchor=TOP, rounding1=flare_neck_bottom, orient=DOWN) {
+                    // base
+                    position(BOTTOM) cyl(d=platform_size[0], l=platform_size[1], anchor=TOP, rounding2=2);
+                }
+            }
+        }
+        children();
+    }
+}
+
 module ball_with_circular_base(ball_d, platform_size, neck_size, flare_neck_bottom=0, anchor=CENTER, orient=UP, spin=0) {
     push_up_neck = 5;
     size=[platform_size[0], platform_size[0], neck_size[1]+ball_d+platform_size[1] - push_up_neck];
-    attachable(orient=orient, anchor=anchor, spin=spin, size=size) {
-        up(neck_size[1] - push_up_neck + platform_size[1])
-        down(size[2]/2)
-        sphere(d=ball_d, anchor=BOTTOM) {
-            up(push_up_neck)
+    ball_center_h = neck_size[1] - push_up_neck + platform_size[1] - size[2]/2 + ball_d/2;
+    anchor_list = [
+        // named_anchor("ball-center", [0, 0, platform_size[1]+neck_size[1]+push_up_neck]),
+        named_anchor("ball-center", [0, 0, ball_center_h]),
+    ];
+    attachable(orient=orient, anchor=anchor, spin=spin, size=size, anchors=anchor_list) {
+        // up(neck_size[1] - push_up_neck + platform_size[1])
+        // down(size[2]/2)
+        up(ball_center_h-ball_d/2)
+        onion(d=ball_d, anchor=TOP, orient=DOWN) {
+            down(push_up_neck)
             // neck
-            position(BOTTOM) cyl(d=neck_size[0], l=neck_size[1], anchor=TOP, rounding1=flare_neck_bottom) {
+            position(TOP) cyl(d=neck_size[0], l=neck_size[1], anchor=TOP, rounding1=flare_neck_bottom, orient=DOWN) {
                 // base
                 position(BOTTOM) cyl(d=platform_size[0], l=platform_size[1], anchor=TOP, rounding2=2);
             }
@@ -25,9 +61,9 @@ module ball_with_circular_base(ball_d, platform_size, neck_size, flare_neck_bott
 // double_socket(25.5, 75, "1/4,20", nut_trap=false, offset_spring=true);
 // l should be the ball center to center length
 module double_socket(ball_d, l, thickness=0, screw_profile="1/4,20", nut_trap=true, offset_spring=false, spring_diam=6.75, anchor=CENTER, orient=UP, spin=0) {
-    ball_increase_factor = 1.1;
+    ball_increase_factor = 1;
     ball_to_edge_dist = 0;
-    size = [l + ball_d*0.9 + ball_to_edge_dist*2, ball_d*0.9, ball_d * ball_increase_factor + thickness];
+    size = [l + ball_d*0.9 + ball_to_edge_dist*2, ball_d*0.9, ball_d + thickness];
     gap=3;
     echo(str("overall length = ", size[0], "mm"));
     attachable(anchor=anchor, orient=orient, spin=spin, size=size) {

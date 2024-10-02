@@ -2,6 +2,7 @@ include <BOSL2/std.scad>
 include <BOSL2/rounding.scad>
 
 INCH = 25.4;
+amps_spacing = [30, 38];
 
 function mm_to_in(mm) = mm * 0.0393701;
 function in_to_mm(in) = in * 25.4;
@@ -24,6 +25,7 @@ function angle_between_points2d(p1, p2) = atan2(p2[1]-p1[1],p2[0]-p1[0]);
 module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=UP) {   
     slot_path = glued_circles(r=d/2, spread=spread, tangent=0);
     default_tag("remove")
+    tag_scope()
     attachable(anchor=anchor, spin=spin, orient=orient, size=[spread+d, d, h]) {
         rotate([180,0,0])
         // translate([0,0,-h/2])
@@ -40,9 +42,11 @@ module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=
 //     }
 // }
 
-module trapezoid3d(bottomwidth, topwidth, height, length, anchor=CENTER, spin=0, orient=UP) {
-    attachable(anchor=anchor, spin=spin, orient=orient) {
-        prismoid(size1=[bottomwidth, height], size2=[topwidth, height], height=length);
+module trapezoid3d(bottomwidth, topwidth, height, length, anchor=CENTER, spin=0, orient=UP, joint_top=0, joint_bot=0, joint_sides=0, chamfer=false) {
+    splinesteps = chamfer ? 1 : 16;
+    size = [bottomwidth, length, height];
+    attachable(anchor=anchor, spin=spin, orient=orient, size=size) {
+        rounded_prism(rect([bottomwidth, length]), rect([topwidth, length]), height=height, joint_top=joint_top, joint_bot=joint_bot, joint_sides=joint_sides, splinesteps=splinesteps);
         children();
     }
 }
@@ -64,11 +68,11 @@ module hexagon3d(r,minor_width,height,spin=0, orient=UP, anchor=CENTER)
     rad = r==undef ?
         minor_width / (2 * sin(60)) :
         r;
-    attachable(spin=spin, orient=orient, anchor=anchor, size=[2*rad, 2*rad, height]) {
-        regular_polygon_3d(6, rad, height, spin=spin, orient=orient, anchor=anchor);
+    echo(str("major diam of hexagon is ", rad));
+    attachable(size=[0, 0, height], anchor=anchor, spin=spin, orient=orient) {
+        regular_polygon_3d(6, rad, height);
         children();
     }
-    
 }
 
 module magnet_cutout_cyl(
@@ -83,6 +87,7 @@ module magnet_cutout_cyl(
     spin=0,
     orient=UP) {
     // default_tag("remove")
+    // tag_scope()
     attachable(size=[mag_d, mag_d, l], spin=spin, anchor=anchor, orient=orient) {
         intersect(intersect="mag-intersect", keep="mag-keep") {
             cyl(d=mag_d, l=l, anchor=CENTER) {
