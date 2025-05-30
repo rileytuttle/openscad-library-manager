@@ -34,7 +34,7 @@ module slot(d, h, spread, spin=0, round_radius=0, anchor=CENTER, spin=0, orient=
     tag_scope()
     attachable(anchor=anchor, spin=spin, orient=orient, size=[spread+d, d, h]) {
         rotate([180,0,0])
-        // translate([0,0,-h/2])
+        translate([0,0,-h/2])
         offset_sweep(slot_path, height=h, bottom=os_teardrop(r=-round_radius), top=os_teardrop(r=-round_radius));
         children();
     }
@@ -129,6 +129,37 @@ module floating_hole(d, l, channel_w, layer_height=0.2, anchor=CENTER, spin=0, o
             }
             up(l/2 + layer_height)
             cube([channel_width, channel_width, layer_height], anchor=BOTTOM);
+        }
+        children();
+    }
+}
+
+module floating_hole_nut_trap_inline(
+    screw_profile,
+    nut_info,
+    d,
+    l,
+    layer_height=0.2,
+    anchor=CENTER, spin=0, orient=UP)
+{
+    screw_info_struct = screw_info(screw_profile);
+    diam = d == undef ? struct_val(screw_info_struct, "diameter") : d;
+    head_size = struct_val(nut_info, "width");
+    echo(str("screw head size: ", head_size));
+    echo(str("screw shaft diam: ", diam));
+    echo(nut_info);
+    default_tag("remove")
+    attachable(anchor=anchor, orient=orient, spin=spin, size=[head_size, head_size, l]) {
+        union() {
+            nut_trap_inline(l, screw_profile, anchor=CENTER);
+            up(l/2)
+            // intersection()
+            {
+                // nut_trap_inline(layer_height, screw_profile);
+                cube([diam, head_size, layer_height], anchor=BOTTOM);
+            }
+            up(l/2 + layer_height)
+            cube([diam, diam, layer_height], anchor=BOTTOM);
         }
         children();
     }

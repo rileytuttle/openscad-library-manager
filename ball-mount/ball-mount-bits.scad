@@ -88,8 +88,9 @@ module double_socket(ball_d, l, thickness=0, screw_profile="1/4,20", nut_trap=tr
                 }
                 screw_hole(screw_profile, thread=false, l=35);
                 if(nut_trap) {
+                    nut_info_struct = nut_info(screw_profile, shape="hex");
                     position(BOTTOM)
-                    nut_trap_inline(4, screw_profile);
+                    floating_hole_nut_trap_inline(screw_profile, nut_info_struct, l=4, anchor=BOTTOM);
                 }
                 if (offset_spring)
                 {
