@@ -4,8 +4,8 @@
 
 //     You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. 
 
-include <BOSL2/std.scad>
-include <BOSL2/rounding.scad>
+include <../BOSL2/std.scad>
+include <../BOSL2/rounding.scad>
 
 INCH = 25.4;
 amps_spacing = [30, 38];
