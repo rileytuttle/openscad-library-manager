@@ -4,8 +4,8 @@
 
 //     You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. 
 
-include <BOSL2/std.scad>
-include <rosetta-stone/std.scad>
+include <../BOSL2/std.scad>
+include <std.scad>
 
 function get_mount_hole_locs(hole_spacings, offsets=[0,0]) = [
         // assumes 2D spacings and offsets
